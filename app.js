@@ -101,7 +101,7 @@ function renderExtra(scene) {
   if (scene.universe || scene.illustration || scene.launch || scene.timer) { box.innerHTML = ''; return; } // lo construye moments (cierre.js / viaje.js)
   const caption = (text) => text ? `<div class="extra-caption">${escapeHtml(text)}</div>` : '';
   if (scene.qrSlot && !qr) {                       // espacio reservado para el QR (agrega qr:{ url, label } a la escena para activarlo)
-    box.innerHTML = '<div class="qr-slot"><span>TU QR AQUÍ</span></div>';
+    box.innerHTML = '<div class="qr-box"><img src="media/qr.png" alt="QR" /></div>';
   } else if (qr) {
     box.innerHTML = `<div class="qr-box">${moments.qrSvg(qr.url, !reduceMotion)}</div><div class="qr-url">${escapeHtml(qr.label || qr.url)}</div>`;
   } else if (scene.code) {

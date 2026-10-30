@@ -198,3 +198,5 @@ body { font-family:"Space Grotesk", sans-serif; color:#fff; }
 .stage.presenting .topbar, .stage.presenting .footer, .stage.presenting .sound-toggle, .stage.presenting .operator-toggle { visibility:hidden; }
 .show .show-kicker, .show .show-index, .show .show-progress, .show .show-timer, #showOverline, #showBody { display:none !important; }
 .show-extra .extra-caption, .show-extra .counter span, .show-extra .qr-url { display:none !important; }
+
+.qr-box img { display:block; width:clamp(180px,24vw,420px); height:auto; }

@@ -1,14 +1,13 @@
-// Presentaciones 1 y 2 son demo. La 3 contiene la charla de cierre recibida.
+// Deck 1: El viaje a la luna (7 diapositivas, 15 min). Deck 2: Producto Dekids. Deck 3: Cierre.
 const decks = [
   [
-    { overline:'SUPERPODERES · 01', title:'¿POR QUÉ NOS PRESENTAMOS CON SUPERPODERES?', body:'¿Cuándo fue la última vez que te presentaste sin usar tu puesto, tus títulos o tu edad?', marker:false, duration:90000 },
-    { overline:'HISTORIA DE ORIGEN · 02', title:'EL SEÑOR HACER AMIGOS', body:'Mi superpoder es hablar, conectar y escuchar a quien sea, de lo que sea. Romper barreras en un segundo.', marker:true, duration:120000 },
-    { overline:'DINÁMICA · 03', title:'DESCUBRE TU PODER. CUÉNTASELO A TU VECINO.', body:'Piensa en eso que te sale natural, disfrutas tanto que no parece trabajo o transforma los lugares a los que llegas.', marker:false, duration:90000 },
-    { overline:'TIEMPO DE MISIÓN · 04', title:'TIENES 2 MINUTOS', body:'Di tu nombre de superhéroe y el momento en que descubriste tu poder. ¡Arrancamos!', marker:true, duration:120000, countdown:true },
-    { overline:'MISIÓN A LA LUNA · 05', title:'MAÑANA NOS VAMOS A LA LUNA', body:'Un adulto pide presupuesto, riesgos y razones para no ir. Un niño agarra su mochila para empacar.', marker:false, duration:150000 },
-    { overline:'MENTALIDAD DEKIDS · 06', title:'LA AUSENCIA DE “IMPOSIBLE”', body:'Para un niño, el mundo es un lienzo donde toda aventura puede hacerse realidad. Hoy venimos a recuperar esa chispa.', marker:true, duration:120000 },
-    { overline:'CIERRE · 07', title:'¿A QUÉ LUNA VAS A VIAJAR HOY?', body:'Deja la prudencia excesiva y los pretextos en la puerta. Si decidimos ir a la luna, empacamos la mochila y nos vamos.', marker:false, duration:90000 },
-    { overline:'DESPEGUE COLECTIVO · 08', title:'ARROJA TU AVIÓN DE PAPEL', body:'Escribe tu superpoder y ese objetivo imposible. Dóblalo, constrúyelo y a la cuenta de tres: ¡háganlos volar!', marker:true, duration:120000 }
+    { overline:'EL VIAJE A LA LUNA · 01', title:'¿A QUÉ LUNA VAS A VIAJAR HOY?', body:'Mañana nos vamos a la luna.', marker:true, duration:120000 },
+    { overline:'EL NIÑO INTERIOR · 02', title:'EL NIÑO INTERIOR Y LA CARGA DE LA DUDA', body:'Un adulto pide presupuesto, riesgos y razones para no ir. Un niño agarra su mochila para empacar.', marker:true, duration:90000 },
+    { overline:'EL SEÑOR “HACER AMIGOS” · 03', title:'EL SEÑOR “HACER AMIGOS”', body:'Mi superpoder es hablar, conectar y escuchar a quien sea, de lo que sea. Romper barreras en un segundo.', marker:true, duration:120000 },
+    { overline:'HISTORIA DE ORIGEN · 04', title:'¿CUÁL ES SU HISTORIA DE ORIGEN?', body:'Piensa en eso que te sale natural, disfrutas tanto que no parece trabajo o transforma los lugares a los que llegas. Di tu nombre de superhéroe y el momento en que descubriste tu poder.', marker:true, duration:210000 },
+    { overline:'MENTALIDAD DEKIDS · 05', title:'LA MENTALIDAD DEKIDS Y TU SUEÑO SIN LÍMITES', body:'Para un niño, el mundo es un lienzo donde toda aventura puede hacerse realidad. Hoy venimos a recuperar esa chispa.', marker:true, duration:210000 },
+    { overline:'IDEAS QUE VUELAN · 06', title:'EL PODER DE LAS IDEAS QUE VUELAN', body:'Escribe tu superpoder y ese objetivo imposible. Dóblalo, constrúyelo y a la cuenta de tres: ¡háganlos volar!', marker:true, duration:90000 },
+    { overline:'¡A LA LUNA! · 07', title:'¡A LA LUNA!', body:'Deja la prudencia excesiva y los pretextos en la puerta. Si decidimos ir a la luna, empacamos la mochila y nos vamos.', marker:true, duration:60000 }
   ],
   [
     { overline:'DIEGO · PRODUCTOS DEKIDS · 01', title:'IMPOSIBLE', body:'¿Cuánto tarda en construirse una herramienta educativa de verdad? ¿Un juego, una plataforma, algo con IA adentro?', marker:false, duration:45000 },
@@ -60,18 +59,19 @@ const productEffects = [
   ['countdown','orbit'], ['constellation','stars'], ['lift','rocket'], ['warp','rocket']
 ];
 decks[1].forEach((scene, index) => { [scene.fx, scene.art] = productEffects[index]; });
-const cultureEffects = [
-  ['constellation','stars'], ['celebrate','stars'], ['blueprint','orbit'], ['countdown','rocket'],
-  ['rocket','rocket'], ['burst','stars'], ['orbit','orbit'], ['lift','rocket']
-];
-decks[0].forEach((scene, index) => { [scene.fx, scene.art] = cultureEffects[index]; });
 
 // Momentos animados (ver moments.js): tachado, luna, avión de papel y consulta SQL escrita.
 // `art` se pone en 'stars' donde el momento ya ocupa la pantalla.
 const setMoment = (deck, index, fields) => Object.assign(decks[deck][index], fields);
-setMoment(0, 4, { moment:'moon', art:'stars' });
-setMoment(0, 5, { moment:'strike', strike:{ word:'IMPOSIBLE' } });
-setMoment(0, 7, { moment:'plane', art:'stars' });
+// Deck 1 (El viaje a la luna): estética de sueño de niño (tema 'dream', ilustraciones en viaje.js).
+decks[0].theme = 'dream';
+setMoment(0, 0, { moment:'dream1' });
+setMoment(0, 1, { moment:'dream2', illustration:true });
+setMoment(0, 2, { moment:'plain' }); // solo texto
+setMoment(0, 3, { moment:'dream4', illustration:true });
+setMoment(0, 4, { moment:'dream5', illustration:true });
+setMoment(0, 5, { moment:'dream6', illustration:true });
+setMoment(0, 6, { moment:'dream7' });
 // Deck 3 (Cierre): despegue, contador de manos, universo y final.
 setMoment(2, 5, { moment:'counter', counter:{ label:'Manos levantadas' }, art:'stars' });
 setMoment(2, 6, { moment:'liftoff', art:'stars' });
@@ -82,11 +82,11 @@ setMoment(1, 4, { code:'SELECT nombre\nFROM sospechosos\nWHERE coartada IS NULL;
 
 // Solo los momentos clave llevan efecto de pantalla; el resto usa la transición base (palabras + salida).
 const keyMoments = [
-  { 0:'constellation', 3:'countdown', 7:'burst' },
+  {}, // deck 1: sin efectos de pantalla, cada escena trae su ilustración
   { 0:'warp', 1:'burst', 10:'countdown', 15:'burst' },
   { 0:'warp', 3:'blueprint', 7:'celebrate' } // 7 y 13 llevan su propio momento (cierre.js)
 ];
 decks.forEach((deck, d) => deck.forEach((scene, i) => { scene.fx = keyMoments[d][i] || 'fade'; }));
 
 // Nombres para el operador (teclas 1, 2, 3).
-const deckNames = ['Superpoderes', 'Producto Dekids', 'Cierre'];
+const deckNames = ['El viaje a la luna', 'Producto Dekids', 'Cierre'];

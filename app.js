@@ -94,10 +94,10 @@ function renderCounter(scene) {
 function renderExtra(scene) {
   const box = document.getElementById('showExtra');
   const media = scene.media, qr = scene.qr;
-  show.classList.toggle('has-extra', Boolean(media || qr || scene.poll || scene.code || scene.counter || scene.universe));
+  show.classList.toggle('has-extra', Boolean(media || qr || scene.poll || scene.code || scene.counter || scene.universe || scene.illustration));
   if (scene.poll) { box.innerHTML = ''; renderPoll(scene); return; }
   if (scene.counter) { box.innerHTML = ''; renderCounter(scene); return; }
-  if (scene.universe) { box.innerHTML = ''; return; } // lo construye moments (cierre.js)
+  if (scene.universe || scene.illustration) { box.innerHTML = ''; return; } // lo construye moments (cierre.js / viaje.js)
   const caption = (text) => text ? `<div class="extra-caption">${escapeHtml(text)}</div>` : '';
   if (qr) {
     box.innerHTML = `<div class="qr-box">${moments.qrSvg(qr.url, !reduceMotion)}</div><div class="qr-url">${escapeHtml(qr.label || qr.url)}</div>`;
@@ -251,12 +251,20 @@ function fitTitle(title) {
   const maxHeight = innerHeight * .58;
   let size = parseFloat(getComputedStyle(title).fontSize);
   const maxWidth = innerWidth * (show.classList.contains('has-extra') ? .44 : .86);
-  const widest = () => Math.max(0, ...[...title.querySelectorAll('[data-word]')].map((w) => w.getBoundingClientRect().width));
+  const widest = () => Math.max(0, ...[...title.querySelectorAll(':scope > [data-word]')].map((w) => w.getBoundingClientRect().width));
   for (let i = 0; i < 16 && (title.offsetHeight > maxHeight || widest() > maxWidth) && size > 28; i++) { size *= .93; title.style.fontSize = `${size}px`; }
 }
+// Re-ajusta el título cuando termina de cargar una fuente o cambia el tamaño de la ventana (p. ej. al pasar a pantalla completa con F).
+let refitTimer = null;
+const refitTitle = () => { clearTimeout(refitTimer); refitTimer = setTimeout(() => { if (activeDeck !== null && shown) fitTitle(document.getElementById('showTitle')); }, 120); };
+window.addEventListener('resize', refitTitle);
+document.fonts?.addEventListener?.('loadingdone', refitTitle);
+document.fonts?.ready.then(refitTitle);
+
 // Pinta el contenido de la escena; el título entra palabra por palabra (--i controla el retraso).
 function paintScene(scene) {
   shown = true; moments.clear();
+  show.dataset.theme = decks[activeDeck].theme || '';
   show.dataset.fx = scene.fx || 'fade';
   show.dataset.art = scene.art || 'rocket';
   document.getElementById('showNumber').textContent = String(activeDeck + 1).padStart(2,'0');

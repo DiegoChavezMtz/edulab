@@ -119,3 +119,12 @@ body { font-family:"Space Grotesk", sans-serif; color:#fff; }
 .counter span { color:rgba(255,255,255,.75); font:500 clamp(12px,1.2vw,22px) "DM Mono",monospace; letter-spacing:.2em; text-transform:uppercase; }
 .chips { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
 .chips span { padding:6px 14px; border:1px solid var(--lime); color:var(--lime); font:500 clamp(10px,.95vw,16px) "DM Mono",monospace; letter-spacing:.14em; text-transform:uppercase; }
+
+/* Tema "dream" (deck 1, El viaje a la luna): sueño de niño, noche azul, marcador y crayón en amarillo, coral y celeste. */
+.show[data-theme="dream"] { --lime:#ffd84d; }
+.show[data-theme="dream"]::before { background:radial-gradient(ellipse at 50% 28%, rgba(52,38,120,.5), rgba(8,6,30,.84)); }
+.show[data-theme="dream"] .show-art { display:none; }
+.show[data-theme="dream"] h1 { color:#fff3d6; text-shadow:0 5px 0 rgba(8,6,30,.55); }
+.show[data-theme="dream"] h1.marker { color:#ffd84d; text-shadow:0 5px 0 rgba(8,6,30,.6), 0 0 18px rgba(8,6,30,.85); }
+.show[data-theme="dream"] .show-copy p:first-child { color:#ff9ad5; }
+.show[data-theme="dream"] .show-progress i { background:#ffd84d; box-shadow:0 0 14px rgba(255,216,77,.7); }

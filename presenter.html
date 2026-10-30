@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EduLab &amp; Sip — Presentador</title>
+    <title>EduLab &amp; Sip · Presentador</title>
     <style>
       @font-face { font-family:"Archivo Black"; font-display:swap; src:url("fonts/archivo-black.woff2") format("woff2"); }
       @font-face { font-family:"DM Mono"; font-weight:400; font-display:swap; src:url("fonts/dm-mono-400.woff2") format("woff2"); }
@@ -83,7 +83,7 @@
       <section class="side">
         <div class="card next">
           <div class="label mono" id="nextLabel">Siguiente</div>
-          <h2 id="nextTitle">—</h2>
+          <h2 id="nextTitle">·</h2>
           <p id="nextBody"></p>
         </div>
         <div class="card"><div class="label mono">Escenas</div><div class="scenes" id="scenes"></div></div>
@@ -156,7 +156,7 @@
         $('notes').textContent = live && scene.notes ? scene.notes : '';
         $('decks').hidden = live;
         $('nextLabel').textContent = live ? (next ? 'Siguiente' : 'Última escena') : 'Siguiente';
-        $('nextTitle').textContent = live ? (next ? next.title : 'Vuelve a la pantalla de espera') : '—';
+        $('nextTitle').textContent = live ? (next ? next.title : 'Vuelve a la pantalla de espera') : '·';
         $('nextBody').textContent = live && next ? next.body : '';
         $('scenes').innerHTML = live ? deck.map((s, i) => `<button type="button" data-scene="${i}" class="${i === state.scene ? 'current' : i < state.scene ? 'done' : ''}"><small>${String(i + 1).padStart(2,'0')}</small><span>${s.title}</span></button>`).join('') : '';
         $('scenes').querySelector('.current')?.scrollIntoView({ block: 'nearest' });
@@ -181,11 +181,11 @@
         const remaining = Math.max(0, state.remaining - (running ? performance.now() - receivedAt : 0));
         const deck = decks[state.deck];
         const total = dur(deck[state.scene]);
-        $('sceneClock').textContent = fmt(remaining);
+        $('sceneClock').textContent = state.hold ? '∞' : fmt(remaining);
         $('sceneClockLabel').textContent = state.mode === 'auto' ? 'Escena (restante)' : 'Escena (manual)';
-        $('bar').style.width = state.mode === 'auto' ? `${(1 - remaining / total) * 100}%` : '0';
+        $('bar').style.width = state.mode === 'auto' && !state.hold ? `${(1 - remaining / total) * 100}%` : '0';
         $('elapsed').textContent = fmt(Date.now() - state.startedAt);
-        const later = deck.slice(state.scene + 1).reduce((sum, s) => sum + dur(s), 0);
+        const later = deck.slice(state.scene + 1).reduce((sum, s) => sum + (s.hold ? 0 : dur(s)), 0);
         $('deckLeft').textContent = fmt((state.mode === 'auto' ? remaining : total) + later);
       }, 250);
       renderStatic();

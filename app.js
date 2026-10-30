@@ -94,12 +94,15 @@ function renderCounter(scene) {
 function renderExtra(scene) {
   const box = document.getElementById('showExtra');
   const media = scene.media, qr = scene.qr;
-  show.classList.toggle('has-extra', Boolean(media || qr || scene.poll || scene.code || scene.counter || scene.universe || scene.illustration));
+  show.classList.toggle('has-extra', Boolean(media || qr || scene.poll || scene.code || scene.counter || scene.universe || scene.illustration || scene.timer || scene.qrSlot)); // scene.launch: el momento activa has-extra a mitad de la escena
+  show.classList.toggle('wide-extra', Boolean(scene.universe)); // el universo ocupa la mayor parte de la pantalla
   if (scene.poll) { box.innerHTML = ''; renderPoll(scene); return; }
   if (scene.counter) { box.innerHTML = ''; renderCounter(scene); return; }
-  if (scene.universe || scene.illustration) { box.innerHTML = ''; return; } // lo construye moments (cierre.js / viaje.js)
+  if (scene.universe || scene.illustration || scene.launch || scene.timer) { box.innerHTML = ''; return; } // lo construye moments (cierre.js / viaje.js)
   const caption = (text) => text ? `<div class="extra-caption">${escapeHtml(text)}</div>` : '';
-  if (qr) {
+  if (scene.qrSlot && !qr) {                       // espacio reservado para el QR (agrega qr:{ url, label } a la escena para activarlo)
+    box.innerHTML = '<div class="qr-slot"><span>TU QR AQUÍ</span></div>';
+  } else if (qr) {
     box.innerHTML = `<div class="qr-box">${moments.qrSvg(qr.url, !reduceMotion)}</div><div class="qr-url">${escapeHtml(qr.label || qr.url)}</div>`;
   } else if (scene.code) {
     box.innerHTML = '<pre class="code-box"><code id="codeOut"></code><i class="caret"></i></pre>';
@@ -134,8 +137,10 @@ function savePosition() {
   try { activeDeck === null ? localStorage.removeItem(STORAGE_KEY) : localStorage.setItem(STORAGE_KEY, JSON.stringify({ deck: activeDeck, scene: activeScene, startedAt: deckStartedAt })); } catch {}
 }
 function clearShowTimer() { if (showTimer) clearTimeout(showTimer); if (countdownInterval) clearInterval(countdownInterval); showTimer = null; countdownInterval = null; }
-function armTimer(ms) { clearShowTimer(); sceneRemaining = ms; sceneStartedAt = performance.now(); if (mode === 'auto') showTimer = setTimeout(nextScene, ms); }
-function timeLeft() { return mode === 'auto' && !showPaused && activeDeck !== null ? Math.max(0, sceneRemaining - (performance.now() - sceneStartedAt)) : sceneRemaining; }
+// hold: la escena no tiene tiempo; se queda hasta que el orador avance (flecha →, clicker o click).
+const isHold = () => activeDeck !== null && Boolean(decks[activeDeck][activeScene]?.hold);
+function armTimer(ms) { clearShowTimer(); sceneRemaining = ms; sceneStartedAt = performance.now(); if (mode === 'auto' && !isHold()) showTimer = setTimeout(nextScene, ms); }
+function timeLeft() { return isHold() ? 0 : mode === 'auto' && !showPaused && activeDeck !== null ? Math.max(0, sceneRemaining - (performance.now() - sceneStartedAt)) : sceneRemaining; }
 function renderCountdown(scene) {
   const label = document.getElementById('showTimer');
   label.classList.toggle('active', Boolean(scene.countdown));
@@ -155,7 +160,7 @@ function updateTag() {
 }
 function publish() {
   channel?.postMessage({ type: 'state', state: {
-    deck: activeDeck, scene: activeScene, paused: showPaused, mode, remaining: activeDeck === null ? 0 : timeLeft(), startedAt: deckStartedAt,
+    deck: activeDeck, scene: activeScene, paused: showPaused, mode, hold: isHold(), remaining: activeDeck === null ? 0 : timeLeft(), startedAt: deckStartedAt,
     votes: activeDeck === null ? null : votes[voteKey()] || null
   } });
 }
@@ -202,23 +207,70 @@ function playEntry(scene) {
   const { overline, body, extra } = sceneNodes();
   const chars = split.chars;
   stopSceneAnimations();
-  if (reduceMotion) { utils.set([overline, body, extra, chars], { opacity: 1, x: 0, y: 0, rotate: 0, scale: 1 }); moments.start(scene, { split, reduce: true }); return; }
+  if (reduceMotion) { utils.set([overline, body, extra, chars], { opacity: 1, x: 0, y: 0, rotate: 0, scale: 1 }); moments.start(scene, momentCtx(scene, true)); return; }
   utils.set([overline, body, extra, chars], { opacity: 0 });
-  const gap = Math.min(32, 700 / chars.length);
-  entryTl = createTimeline({ defaults: { ease: 'outExpo' } })
-    .add(overline, { opacity: [0, 1], y: [16, 0], duration: 500 }, 0)
-    .add(chars, scene.marker
-      ? { opacity: [0, 1], y: ['-.6em', 0], rotate: { from: (el, i) => ((i * 37) % 29) - 14, to: 0 }, duration: 750, ease: 'outBack(2.2)', delay: stagger(gap) }
-      : { opacity: [0, 1], y: ['.5em', 0], scale: [.92, 1], duration: 650, delay: stagger(gap) }, 100)
-    .add(body, { opacity: [0, 1], y: [16, 0], duration: 600 }, 500)
-    .add(extra, { opacity: [0, 1], y: [24, 0], duration: 700 }, 650);
-  moments.start(scene, { split, reduce: false });
+  entryTl = createTimeline({ defaults: { ease: 'outExpo' } });
+  if (!scene.holdTitle) {                       // holdTitle: el texto lo revela el momento (ctx.reveal / ctx.revealWord)
+    const gap = Math.min(32, 700 / Math.max(1, chars.length));
+    entryTl
+      .add(overline, { opacity: [0, 1], y: [16, 0], duration: 500 }, 0)
+      .add(chars, titleIn(scene, gap), 100)
+      .add(body, { opacity: [0, 1], y: [16, 0], duration: 600 }, 500);
+  }
+  entryTl.add(extra, { opacity: [0, 1], y: [24, 0], duration: 700 }, 650);
+  moments.start(scene, momentCtx(scene, false));
 }
-function playExit() {
+const titleIn = (scene, gap) => scene.marker
+  ? { opacity: [0, 1], y: ['-.6em', 0], rotate: { from: (el, i) => ((i * 37) % 29) - 14, to: 0 }, duration: 750, ease: 'outBack(2.2)', delay: stagger(gap) }
+  : { opacity: [0, 1], y: ['.5em', 0], scale: [.92, 1], duration: 650, delay: stagger(gap) };
+
+// ---- Título dinámico: pintar, revelar por partes y cambiar de frase (usado por los momentos).
+function paintTitle(scene, text = scene.title) {
+  const title = document.getElementById('showTitle');
+  split?.revert();
+  title.textContent = text;
+  title.className = `${scene.marker ? 'marker ' : ''}${text.length > 26 ? 'long-title' : ''}`;
+  split = splitText(title, { words: true, chars: true });
+  return title;
+}
+// parts: cualquiera de 'overline', 'chars', 'body'; words: índices de palabras a revelar (si no, todos los caracteres)
+function revealTitle(scene, { parts = ['overline', 'chars', 'body'], words = null } = {}) {
+  const { overline, body } = sceneNodes();
+  if (parts.includes('overline')) animate(overline, { opacity: [0, 1], y: [16, 0], duration: 500, ease: 'outExpo' });
+  if (parts.includes('chars') && split) {
+    const chars = words ? words.flatMap((i) => [...(split.words[i]?.querySelectorAll('[data-char]') || [])]) : split.chars;
+    animate(chars, { ...titleIn(scene, Math.min(32, 700 / Math.max(1, chars.length))), delay: stagger(Math.min(32, 700 / Math.max(1, chars.length))) });
+  }
+  if (parts.includes('body')) animate(body, { opacity: [0, 1], y: [16, 0], duration: 600, delay: 300, ease: 'outExpo' });
+}
+let retitleTimer = null;
+// Cambia la frase: las letras actuales se disuelven hacia arriba y entra la nueva. hold: la nueva queda oculta para que el momento la revele.
+function retitle(scene, text, { hold = false, exit = true } = {}) {
+  clearTimeout(retitleTimer);
+  const old = exit ? (split?.chars || []) : [];                 // exit:false → el momento ya animó la salida y el cambio es inmediato
+  if (old.length && !reduceMotion) animate(old, { opacity: 0, y: '-.35em', rotate: () => utils.random(-12, 12), duration: 320, ease: 'in(2)', delay: stagger(Math.min(14, 220 / old.length), { from: 'random' }) });
+  retitleTimer = setTimeout(() => {
+    const title = paintTitle(scene, text);
+    fitTitle(title);
+    utils.set(split.chars, { opacity: 0 });
+    if (!hold) revealTitle(scene, { parts: ['chars'] });
+  }, old.length && !reduceMotion ? 420 : 0);
+}
+function showSceneText(scene, text) {
+  show.classList.remove('no-text'); show.classList.add('has-extra');
+  utils.set(document.getElementById('showOverline'), { opacity: 0 });
+  retitle(scene, text, { exit: false });
+  revealTitle(scene, { parts: ['overline'] });
+}
+const momentCtx = (scene, reduce) => ({
+  split, reduce, continuing: Boolean(scene.continues), getSplit: () => split,
+  reveal: (opts) => revealTitle(scene, opts), retitle: (text, opts) => retitle(scene, text, opts), showText: (text) => showSceneText(scene, text)
+});
+function playExit(next) {
   const { overline, body, extra } = sceneNodes();
   stopSceneAnimations();
   if (reduceMotion || !split) return;
-  moments.fade();
+  if (!next?.continues) moments.fade();                  // si la siguiente escena continúa el mismo fondo (mesa), no se funde la capa: así no hay corte
   const chars = split.chars;
   exitAnims = [
     animate(chars, { opacity: 0, y: '-.25em', duration: 180, ease: 'in(2)', delay: stagger(Math.min(8, 70 / chars.length), { from: 'last' }) }),
@@ -229,7 +281,7 @@ function playExit() {
 function syncProgress() { progressAnim?.seek(sceneDuration() - timeLeft()); }
 function startProgress() {
   progressAnim?.cancel(); progressAnim = null;
-  if (mode === 'manual') { utils.set(progressFill, { scaleX: 1 }); return; }
+  if (mode === 'manual' || isHold()) { utils.set(progressFill, { scaleX: 1 }); return; }
   utils.set(progressFill, { scaleX: 0 });
   progressAnim = animate(progressFill, { scaleX: [0, 1], duration: sceneDuration(), ease: 'linear', autoplay: false });
   syncProgress();
@@ -238,7 +290,7 @@ function startProgress() {
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !showPaused) syncProgress(); });
 
 function standby() {
-  clearTimeout(swapTimer); shown = false; stopSceneAnimations(); moments.clear(); progressAnim?.cancel(); progressAnim = null;
+  clearTimeout(swapTimer); shown = false; stopSceneAnimations(); moments.clear(); setBackdrop(null); progressAnim?.cancel(); progressAnim = null;
   clearShowTimer(); activeDeck = null; activeScene = 0; showPaused = false;
   stage.classList.remove('presenting'); show.classList.remove('active','running','paused'); show.setAttribute('aria-hidden','true');
   document.getElementById('showExtra').innerHTML = ''; show.classList.remove('has-extra');
@@ -248,37 +300,62 @@ function standby() {
 // Los títulos se achican hasta caber (máx. ~58% del alto y sin que una palabra se salga del ancho).
 function fitTitle(title) {
   title.style.fontSize = '';
-  const maxHeight = innerHeight * .58;
+  const scene = activeDeck !== null ? decks[activeDeck][activeScene] : null;
+  const maxHeight = innerHeight * (scene?.titleMaxH || .58);                       // escenas con bandas arriba/abajo (p. ej. carruseles) reservan menos alto
   let size = parseFloat(getComputedStyle(title).fontSize);
-  const maxWidth = innerWidth * (show.classList.contains('has-extra') ? .44 : .86);
+  const maxWidth = innerWidth * (show.classList.contains("wide-extra") ? .26 : show.classList.contains("has-extra") ? .44 : .8);
   const widest = () => Math.max(0, ...[...title.querySelectorAll(':scope > [data-word]')].map((w) => w.getBoundingClientRect().width));
   for (let i = 0; i < 16 && (title.offsetHeight > maxHeight || widest() > maxWidth) && size > 28; i++) { size *= .93; title.style.fontSize = `${size}px`; }
 }
 // Re-ajusta el título cuando termina de cargar una fuente o cambia el tamaño de la ventana (p. ej. al pasar a pantalla completa con F).
 let refitTimer = null;
+let lastSize = [innerWidth, innerHeight];
 const refitTitle = () => { clearTimeout(refitTimer); refitTimer = setTimeout(() => { if (activeDeck !== null && shown) fitTitle(document.getElementById('showTitle')); }, 120); };
+// Las ilustraciones se dibujan con el tamaño de pantalla del momento en que empiezan: si la pantalla cambia de tamaño, se vuelven a dibujar para que nada quede descentrado o cortado.
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if ([innerWidth, innerHeight].every((v, i) => Math.abs(v - lastSize[i]) < 2)) return;
+    lastSize = [innerWidth, innerHeight];
+    if (activeDeck !== null && shown) { fitTitle(document.getElementById('showTitle')); replayMoment(); }
+  }, 350);
+});
 window.addEventListener('resize', refitTitle);
 document.fonts?.addEventListener?.('loadingdone', refitTitle);
 document.fonts?.ready.then(refitTitle);
 
+// Fondo sólido con doble búfer: el tema nuevo se funde sobre el anterior (la red de moléculas no se asoma entre diapositivas).
+let backdropKey = null, backdropTimer = null;
+function setBackdrop(key) {
+  const box = document.getElementById('showBackdrop'), [a, b] = box.children;
+  show.toggleAttribute('data-solid', Boolean(key));
+  if (key === backdropKey) return;
+  backdropKey = key;
+  clearTimeout(backdropTimer);
+  if (!key) { [a, b].forEach((el) => { el.classList.remove('on'); el.style.zIndex = ''; }); return; }
+  const [cur, next] = a.classList.contains('on') ? [a, b] : [b, a];
+  // el fondo nuevo se funde ENCIMA del anterior, que se mantiene opaco hasta que termina: nunca queda translúcido (no se asoma la red de moléculas)
+  next.dataset.bd = key; cur.style.zIndex = 1; next.style.zIndex = 2; void next.offsetWidth;
+  next.classList.add('on');
+  backdropTimer = setTimeout(() => { cur.style.transition = 'none'; cur.classList.remove('on'); void cur.offsetWidth; cur.style.transition = ''; }, 760);
+}
 // Pinta el contenido de la escena; el título entra palabra por palabra (--i controla el retraso).
 function paintScene(scene) {
   shown = true; moments.clear();
-  show.dataset.theme = decks[activeDeck].theme || '';
+  show.dataset.theme = scene.theme || decks[activeDeck].theme || '';
+  setBackdrop(decks[activeDeck].solid ? (scene.theme || 'neon') : null);
+  show.classList.toggle('no-text', Boolean(scene.hideText));
   show.dataset.fx = scene.fx || 'fade';
   show.dataset.art = scene.art || 'rocket';
   document.getElementById('showNumber').textContent = String(activeDeck + 1).padStart(2,'0');
   document.getElementById('showOverline').textContent = scene.overline;
-  const title = document.getElementById('showTitle');
-  split?.revert();
-  title.textContent = scene.title;
-  title.className = `${scene.marker ? 'marker ' : ''}${scene.title.length > 26 ? 'long-title' : ''}`;
-  split = splitText(title, { words: true, chars: true });
+  const title = paintTitle(scene);
   document.getElementById('showBody').textContent = scene.body;
   document.getElementById('sceneIndex').textContent = String(activeScene + 1).padStart(2,'0');
   document.getElementById('sceneTotal').textContent = String(decks[activeDeck].length).padStart(2,'0');
   show.style.setProperty('--scene-duration', `${sceneDuration()}ms`);
-  show.classList.toggle('manual', mode === 'manual');
+  show.classList.toggle('manual', mode === 'manual' || Boolean(scene.hold));
   renderExtra(scene);
   fitTitle(title); // después de renderExtra: el ancho disponible depende de si hay columna extra
   show.classList.remove('reveal','running'); void show.offsetWidth; show.classList.add('reveal','running');
@@ -293,7 +370,7 @@ function renderScene() {
   showPaused = false; show.classList.remove('paused');
   armTimer(sceneDuration());
   renderCountdown(scene);
-  if (shown) { playExit(); swapTimer = setTimeout(() => paintScene(scene), EXIT_MS); }
+  if (shown) { playExit(scene); swapTimer = setTimeout(() => paintScene(scene), EXIT_MS); }
   else paintScene(scene);
   updateTag(); savePosition(); publish();
 }
@@ -307,7 +384,7 @@ function goTo(scene) { if (activeDeck === null || !decks[activeDeck][scene]) ret
 function nextScene() { if (activeDeck === null) return; if (activeScene < decks[activeDeck].length - 1) goTo(activeScene + 1); else standby(); }
 function previousScene() { if (activeDeck === null) return; goTo(Math.max(0, activeScene - 1)); }
 function toggleTimeline() {
-  if (activeDeck === null || mode === 'manual') return;
+  if (activeDeck === null || mode === 'manual' || isHold()) return;
   showPaused = !showPaused;
   show.classList.toggle('paused', showPaused);
   if (showPaused) { sceneRemaining = Math.max(0, sceneRemaining - (performance.now() - sceneStartedAt)); clearShowTimer(); progressAnim?.pause(); }
@@ -333,7 +410,14 @@ function replayMoment() {
   const scene = decks[activeDeck][activeScene];
   if (scene.code) document.getElementById('codeOut') && (document.getElementById('codeOut').innerHTML = '');
   if (scene.qr) document.querySelectorAll('#showExtra .qr-box rect').forEach((r) => { r.style.opacity = 0; });
-  moments.start(scene, { split, reduce: reduceMotion }, true);
+  if (scene.hideText) { show.classList.add('no-text'); show.classList.remove('has-extra'); }           // vuelve a ocultarse el texto si la escena lo muestra más tarde
+  if (scene.holdTitle || scene.retitles) {                     // volver al estado inicial del título
+    clearTimeout(retitleTimer);
+    const title = paintTitle(scene); fitTitle(title);
+    const { overline, body } = sceneNodes();
+    utils.set(scene.holdTitle ? [overline, body, split.chars] : [split.chars], { opacity: scene.holdTitle ? 0 : 1, y: 0, rotate: 0, scale: 1 });
+  }
+  moments.start(scene, momentCtx(scene, reduceMotion), true);
 }
 function openPresenter() { window.open('presenter.html', 'edulab-presenter', 'width=1180,height=760'); }
 

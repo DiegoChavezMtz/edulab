@@ -168,46 +168,79 @@
     later(wait(1800), () => { const s = mount(false); /* destellos de superpoder al aparecer */ for (let i = 0; i < 10; i++) later(i * 120, () => fadingDot(s, rand(.35, .75) * innerWidth, rand(.3, .6) * innerHeight, [YELLOW, PINK, SKY][i % 3], rand(4, 8), 900)); });
   });
 
-  // ---- 5 · La mentalidad dekids y tu sueño sin límites: una hoja que se dobla hasta ser un avión de papel.
+  // ---- 5 · La mentalidad dekids y tu sueño sin límites: un niño con casco espacial lanza un avioncito de papel (se repite).
   moments.register('dream5', (scene, ctx, wait) => {
     const svg = extraSvg('0 0 440 380');
-    svgEl('ellipse', { cx: 220, cy: 336, rx: 170, ry: 14, fill: 'rgba(255,243,214,.14)' }, svg);
-    const stage = svgEl('g', { opacity: 0, style: CENTER }, svg), body = svgEl('g', {}, stage);
-    const K = [
-      [[-70, -100], [70, -100], [70, 0], [70, 100], [-70, 100], [-70, 0]],
-      [[0, -100], [0, -100], [70, -30], [70, 100], [-70, 100], [-70, -30]],
-      [[0, -100], [0, -100], [35, -40], [35, 100], [-35, 100], [-35, -40]]
-    ];
-    const lerp = (a, b, t) => a.map((p, i) => [p[0] + (b[i][0] - p[0]) * t, p[1] + (b[i][1] - p[1]) * t]);
-    const sheet = svgEl('path', { fill: '#fffaf0', stroke: NIGHT, 'stroke-width': 3, 'stroke-linejoin': 'round' }, body);
-    const crease = svgEl('path', { d: 'M0 -100L0 100M-70 -30L0 -100M70 -30L0 -100', fill: 'none', stroke: '#9fb6d9', 'stroke-width': 2, 'stroke-dasharray': '6 6' }, body);
-    const wings = svgEl('g', { opacity: 0 }, stage);
-    const wingTop = svgEl('path', { d: 'M110 0L-10 -78L10 0Z', fill: '#ffffff', stroke: NIGHT, 'stroke-width': 3, 'stroke-linejoin': 'round', style: BOTTOM }, wings);
-    const wingBottom = svgEl('path', { d: 'M110 0L-10 78L10 0Z', fill: SKY, stroke: NIGHT, 'stroke-width': 3, 'stroke-linejoin': 'round', style: 'transform-box:fill-box;transform-origin:50% 0%;' }, wings);
-    const state = { f1: 0, f2: 0, rot: 0, open: 0, wob: 0 };
-    const draw = () => {
-      const shape = state.f2 > 0 ? lerp(K[1], K[2], state.f2) : lerp(K[0], K[1], state.f1);
-      sheet.setAttribute('d', 'M' + shape.map((p) => p.join(' ')).join('L') + 'Z');
-      crease.setAttribute('opacity', state.rot > 0 ? 0 : 1 - state.f2);
-      body.setAttribute('transform', `rotate(${state.rot} 0 0) rotate(${Math.sin(state.wob) * 1.6})`);
-      sheet.setAttribute('opacity', state.open > 0 ? 1 - state.open : 1);
-      wings.setAttribute('opacity', state.open > 0 ? 1 : 0);
-      wingTop.setAttribute('transform', `scale(1 ${state.open})`); wingBottom.setAttribute('transform', `scale(1 ${state.open})`);
+    const cx = 120, base = 336, shoulder = [cx + 22, base - 92], ARM = 46;
+    svgEl('ellipse', { cx: 190, cy: base + 2, rx: 170, ry: 14, fill: 'rgba(255,243,214,.14)' }, svg);
+    const o = { stroke: NIGHT, 'stroke-width': 2.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' };
+    const kidG = svgEl('g', { opacity: 0, style: BOTTOM }, svg);
+    // mochila de oxígeno y capa de astronauta detrás del cuerpo
+    svgEl('rect', { x: cx - 38, y: base - 98, width: 20, height: 46, rx: 8, fill: '#c9d3ea', ...o }, kidG);
+    svgEl('path', { d: `M${cx - 30} ${base - 92}v34`, stroke: '#9fb6d9', 'stroke-width': 3, 'stroke-linecap': 'round' }, kidG);
+    // piernas y botas
+    svgEl('path', { d: `M${cx - 16} ${base - 50}h13v44h-13zM${cx + 3} ${base - 50}h13v44h-13z`, fill: CORAL, ...o }, kidG);
+    svgEl('path', { d: `M${cx - 19} ${base - 12}h17v12h-17zM${cx + 2} ${base - 12}h17v12h-17z`, fill: NIGHT, ...o }, kidG);
+    // brazo trasero (cuelga) y torso
+    svgEl('path', { d: `M${cx - 24} ${base - 92}Q${cx - 44} ${base - 74} ${cx - 34} ${base - 56}`, fill: 'none', stroke: CORAL, 'stroke-width': 12, 'stroke-linecap': 'round' }, kidG);
+    svgEl('circle', { cx: cx - 34, cy: base - 54, r: 7, fill: SKIN, ...o }, kidG);
+    svgEl('rect', { x: cx - 24, y: base - 102, width: 48, height: 58, rx: 12, fill: CORAL, ...o }, kidG);
+    svgEl('rect', { x: cx - 24, y: base - 62, width: 48, height: 7, fill: YELLOW, ...o }, kidG);
+    star4(svgEl('g', {}, kidG), cx, base - 80, 10, YELLOW);
+    svgEl('rect', { x: cx - 13, y: base - 108, width: 26, height: 10, rx: 4, fill: '#c9d3ea', ...o }, kidG);  // aro del cuello
+    // cabeza con casco
+    const hy = base - 140;
+    svgEl('circle', { cx, cy: hy, r: 26, fill: SKIN, ...o }, kidG);
+    svgEl('path', { d: `M${cx - 26} ${hy - 4}Q${cx} ${hy - 44} ${cx + 26} ${hy - 4}Q${cx} ${hy - 17} ${cx - 26} ${hy - 4}Z`, fill: HAIR, ...o }, kidG);
+    [-9, 9].forEach((x) => { svgEl('ellipse', { cx: cx + x + 3, cy: hy + 2, rx: 5, ry: 4.5, fill: '#fff' }, kidG); svgEl('circle', { cx: cx + x + 5, cy: hy + 2, r: 2.2, fill: NIGHT }, kidG); });
+    svgEl('path', { d: `M${cx - 6} ${hy + 15}Q${cx + 4} ${hy + 22} ${cx + 14} ${hy + 14}`, fill: 'none', stroke: NIGHT, 'stroke-width': 2.5, 'stroke-linecap': 'round' }, kidG);
+    svgEl('circle', { cx, cy: hy, r: 41, fill: 'rgba(127,214,255,.2)', stroke: CREAM, 'stroke-width': 4 }, kidG);   // burbuja del casco
+    svgEl('path', { d: `M${cx - 30} ${hy - 20}Q${cx - 22} ${hy - 32} ${cx - 8} ${hy - 36}`, fill: 'none', stroke: '#fff', 'stroke-width': 4, 'stroke-linecap': 'round', opacity: .85 }, kidG);  // brillo
+    svgEl('path', { d: `M${cx + 28} ${hy - 30}l7 -16`, stroke: CREAM, 'stroke-width': 3, 'stroke-linecap': 'round' }, kidG);                         // antena
+    svgEl('circle', { cx: cx + 36, cy: hy - 48, r: 4.5, fill: PINK, ...o, 'stroke-width': 2 }, kidG);
+    // brazo que lanza (gira desde el hombro)
+    const arm = svgEl('g', {}, kidG);
+    svgEl('path', { d: `M0 0L${ARM} 0`, stroke: CORAL, 'stroke-width': 12, 'stroke-linecap': 'round' }, arm);
+    svgEl('circle', { cx: ARM, cy: 0, r: 7, fill: SKIN, ...o }, arm);
+    const plane = paperPlane(svg), size = 1;
+    plane.setAttribute('opacity', 0);
+
+    const state = { a: 110, grab: 0 };
+    const hand = () => [shoulder[0] + Math.cos(state.a * Math.PI / 180) * ARM, shoulder[1] + Math.sin(state.a * Math.PI / 180) * ARM];
+    const drawArm = () => {
+      arm.setAttribute('transform', `translate(${shoulder[0]} ${shoulder[1]}) rotate(${state.a})`);
+      if (state.grab) { const [x, y] = hand(); plane.setAttribute('transform', `translate(${x + 10} ${y - 6}) rotate(${-24 + (state.a - 200) * .08}) scale(${size * .95})`); }
     };
-    draw();
+    drawArm();
+
     const cycle = (first) => {
-      Object.assign(state, { f1: 0, f2: 0, rot: 0, open: 0 }); draw();
-      const t0 = first ? wait(500) : 600;
-      track(animate(stage, { opacity: [0, 1], scale: [.7, 1], translateY: [20, 0], duration: 700, delay: t0, ease: 'outBack(2)' }));
-      track(animate(state, { f1: [0, 1], duration: 900, delay: t0 + 1100, ease: 'inOutQuad', onUpdate: draw }));
-      track(animate(state, { f2: [0, 1], duration: 900, delay: t0 + 2300, ease: 'inOutQuad', onUpdate: draw }));
-      track(animate(state, { rot: [0, 90], duration: 700, delay: t0 + 3500, ease: 'inOutQuad', onUpdate: draw }));
-      track(animate(state, { open: [0, 1], duration: 700, delay: t0 + 4300, ease: 'outBack(2)', onUpdate: draw }));
-      track(animate(state, { wob: [0, 12], duration: 4500, delay: t0 + 5200, ease: 'linear', onUpdate: draw }));
-      track(animate(stage, { translateY: [0, -14], duration: 1300, delay: t0 + 5200, loop: 3, alternate: true, ease: 'inOutSine' }));
-      later(t0 + 5000, () => { for (let i = 0; i < 8; i++) later(i * 70, () => fadingDot(svg, 220 + rand(-60, 60), 200 + rand(-60, 40), [YELLOW, PINK, SKY][i % 3], rand(4, 7), 800)); });
-      later(t0 + 10500, () => { track(animate(stage, { opacity: 0, scale: .8, duration: 500, ease: 'inQuad', onComplete: () => cycle(false) })); });
+      const t0 = first ? wait(700) : 500;
+      Object.assign(state, { a: 110, grab: 1 }); drawArm();
+      if (!first) track(animate(plane, { opacity: [0, 1], duration: 350, delay: t0 - 300, ease: 'outQuad' }));
+      else later(t0 + 500, () => plane.setAttribute('opacity', 1));
+      if (first) track(animate(kidG, { opacity: [0, 1], translateY: [40, 0], duration: 900, delay: t0, ease: 'outBack(2)' }));
+      const t1 = t0 + (first ? 1500 : 300);
+      track(animate(state, { a: [110, 205], duration: 800, delay: t1, ease: 'inOutQuad', onUpdate: drawArm }));          // se echa para atrás
+      track(animate(state, { a: [205, 322], duration: 330, delay: t1 + 1000, ease: 'outQuad', onUpdate: drawArm }));     // lanza por encima del hombro
+      later(t1 + 1330, () => {
+        state.grab = 0;
+        const [hx, hy2] = hand(), f = { t: 0 }, p0 = [hx + 10, hy2 - 6], p1 = [300, 120], p2 = [380, 20], p3 = [600, -120];
+        const at = (t) => { const u = 1 - t; return [0, 1].map((k) => u*u*u*p0[k] + 3*u*u*t*p1[k] + 3*u*t*t*p2[k] + t*t*t*p3[k]); };
+        const ang = (t) => { const u = 1 - t; const d = [0, 1].map((k) => 3*u*u*(p1[k]-p0[k]) + 6*u*t*(p2[k]-p1[k]) + 3*t*t*(p3[k]-p2[k])); return Math.atan2(d[1], d[0]) * 180 / Math.PI; };
+        let last = 0;
+        for (let i = 0; i < 8; i++) later(i * 40, () => fadingDot(svg, p0[0] + rand(-8, 8), p0[1] + rand(-8, 8), [YELLOW, PINK, SKY][i % 3], rand(4, 7), 700));
+        pulse(.6);
+        track(animate(f, {
+          t: [0, 1], duration: 2600, ease: 'outSine',
+          onUpdate: () => { const [x, y] = at(f.t); plane.setAttribute('transform', `translate(${x} ${y}) rotate(${ang(f.t) + Math.sin(f.t * 14) * 5}) scale(${size * (.95 - f.t * .35)})`); const now = performance.now(); if (now - last > 45) { last = now; fadingDot(svg, x - 18, y + 8, [YELLOW, PINK, SKY][Math.floor(f.t * 16) % 3], 5, 800); } },
+          onComplete: () => plane.setAttribute('opacity', 0)
+        }));
+        track(animate(state, { a: [322, 470], duration: 700, delay: 250, ease: 'inOutQuad', onUpdate: drawArm }));       // el brazo regresa
+      });
+      later(t1 + 4800, () => cycle(false));
     };
+    // el niño respira suave mientras espera
+    track(animate(kidG, { scaleY: [1, .99], duration: 1800, delay: wait(2200), loop: true, alternate: true, ease: 'inOutSine' }));
     cycle(true);
   });
 

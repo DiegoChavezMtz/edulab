@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#050505" />
-    <title>EduLab &amp; Sip — Signal Found</title>
+    <title>EduLab &amp; Sip · Signal Found</title>
     <link rel="preload" href="fonts/archivo-black.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="fonts/permanent-marker.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="styles.css" />
@@ -32,12 +32,14 @@
       </section>
 
       <section class="show" aria-live="polite" aria-hidden="true">
+        <div class="show-backdrop" id="showBackdrop" aria-hidden="true"><i class="bd"></i><i class="bd"></i></div>
         <div class="show-art" aria-hidden="true">
-          <svg class="rocket-doodle" viewBox="0 0 180 250" fill="none">
-            <path d="M95 20C140 62 143 125 116 166L65 111C57 72 70 40 95 20Z" stroke="currentColor" stroke-width="8" stroke-linejoin="round" />
-            <path d="M65 111L32 124L51 151L72 145M116 166L108 200L78 176L82 154" stroke="currentColor" stroke-width="8" stroke-linejoin="round" />
-            <circle cx="96" cy="86" r="18" stroke="currentColor" stroke-width="8" />
-            <path d="M48 151C31 171 25 194 30 222M61 159C50 185 51 209 62 231M73 170C70 195 76 216 91 233" stroke="#ff3bb9" stroke-width="9" stroke-linecap="round" />
+          <svg class="rocket-doodle" viewBox="0 0 180 260" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M90 12C128 46 134 118 120 176H60C46 118 52 46 90 12Z" stroke="currentColor" stroke-width="8" />
+            <circle cx="90" cy="82" r="18" stroke="currentColor" stroke-width="8" />
+            <path d="M61 128C44 142 32 160 30 196L61 176M119 128C136 142 148 160 150 196L119 176" stroke="currentColor" stroke-width="8" />
+            <path d="M72 176L78 196H102L108 176" stroke="currentColor" stroke-width="8" />
+            <path d="M76 212C74 226 77 236 82 246M90 212V254M104 212C106 226 103 236 98 246" stroke="#ff3bb9" stroke-width="9" />
           </svg>
           <span class="doodle star-one">✦</span><span class="doodle star-two">✧</span><span class="doodle spark">✹</span>
           <span class="orbit orbit-one"></span><span class="orbit orbit-two"></span>
@@ -77,6 +79,8 @@
     <script src="moments.js"></script>
     <script src="cierre.js"></script>
     <script src="viaje.js"></script>
+    <script src="papel.js"></script>
+    <script src="papel2.js"></script>
     <script src="decks.js"></script>
     <script src="app.js"></script>
   </body>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EduLab &amp; Sip — Presentador</title>
+    <style>
+      @font-face { font-family:"Archivo Black"; font-display:swap; src:url("fonts/archivo-black.woff2") format("woff2"); }
+      @font-face { font-family:"DM Mono"; font-weight:400; font-display:swap; src:url("fonts/dm-mono-400.woff2") format("woff2"); }
+      @font-face { font-family:"DM Mono"; font-weight:500; font-display:swap; src:url("fonts/dm-mono-500.woff2") format("woff2"); }
+      @font-face { font-family:"Space Grotesk"; font-weight:300 700; font-display:swap; src:url("fonts/space-grotesk.woff2") format("woff2"); }
+      :root { color-scheme: dark; --lime:#d9ff20; --ink:#030711; --line:rgba(255,255,255,.14); --dim:rgba(255,255,255,.55); }
+      * { box-sizing: border-box; }
+      html, body { height:100%; margin:0; background:var(--ink); color:#fff; font-family:"Space Grotesk", sans-serif; }
+      body { display:grid; grid-template-rows:auto 1fr auto; gap:16px; padding:18px 22px; min-height:100%; }
+      .mono { font:500 11px "DM Mono", monospace; letter-spacing:.16em; text-transform:uppercase; }
+      header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+      .status { display:flex; align-items:center; gap:10px; color:var(--dim); }
+      .status i { width:8px; height:8px; border-radius:50%; background:var(--lime); box-shadow:0 0 12px var(--lime); }
+      .status.off i { background:#ff3b3b; box-shadow:0 0 12px #ff3b3b; }
+      .status.paused i { background:#ffb020; box-shadow:0 0 12px #ffb020; }
+      .timers { display:flex; gap:28px; }
+      .timers div { text-align:right; }
+      .timers b { display:block; font:500 26px "DM Mono", monospace; letter-spacing:.04em; color:var(--lime); }
+      .timers span { color:var(--dim); }
+      main { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:16px; min-height:0; }
+      .card { border:1px solid var(--line); background:rgba(255,255,255,.03); padding:20px 22px; overflow:auto; }
+      .card .label { color:var(--lime); margin-bottom:10px; }
+      .card h2 { margin:0 0 12px; font:normal clamp(26px,3.4vw,52px)/.95 "Archivo Black", sans-serif; letter-spacing:-.05em; text-wrap:balance; }
+      .card p { margin:0; font-size:clamp(15px,1.5vw,22px); line-height:1.45; color:rgba(255,255,255,.86); }
+      .side { display:grid; grid-template-rows:auto 1fr; gap:16px; min-height:0; }
+      .next h2 { font-size:clamp(20px,2.2vw,32px); }
+      .next p { font-size:15px; color:var(--dim); }
+      .notes { border-top:1px dashed var(--line); margin-top:16px; padding-top:12px; }
+      .notes p { color:var(--dim); font-size:15px; white-space:pre-wrap; }
+      .bar { height:3px; background:var(--line); margin:0 0 16px; }
+      .bar i { display:block; height:100%; width:0; background:var(--lime); box-shadow:0 0 10px var(--lime); }
+      .scenes { display:flex; flex-direction:column; gap:4px; }
+      .scenes button { all:unset; display:grid; grid-template-columns:34px 1fr; gap:8px; padding:6px 8px; cursor:pointer; border-left:2px solid transparent; font-size:13px; color:var(--dim); }
+      .scenes button:hover { background:rgba(255,255,255,.06); }
+      .scenes button.current { color:#fff; border-left-color:var(--lime); background:rgba(217,255,32,.08); }
+      .scenes button.done { opacity:.4; }
+      .scenes small { font:500 11px "DM Mono", monospace; color:var(--lime); }
+      footer { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+      footer button, .decks button { border:1px solid var(--line); background:rgba(255,255,255,.04); color:#fff; padding:10px 14px; cursor:pointer; font:500 11px "DM Mono", monospace; letter-spacing:.12em; text-transform:uppercase; }
+      footer button:hover, .decks button:hover { border-color:var(--lime); }
+      footer button.primary { background:var(--lime); color:#050505; border-color:var(--lime); }
+      footer .spacer { flex:1; }
+      .poll-ctl { border-top:1px dashed var(--line); margin-top:16px; padding-top:12px; display:grid; gap:8px; }
+      .poll-ctl .row { display:grid; grid-template-columns:1fr auto auto auto; gap:8px; align-items:center; }
+      .poll-ctl .row b { font:500 22px "DM Mono", monospace; color:var(--lime); min-width:36px; text-align:center; }
+      .poll-ctl button { border:1px solid var(--line); background:rgba(255,255,255,.04); color:#fff; padding:8px 14px; cursor:pointer; font:500 12px "DM Mono", monospace; }
+      .poll-ctl button:hover { border-color:var(--lime); }
+      .decks { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+      .empty p { margin-bottom:6px; }
+      [hidden] { display:none !important; }
+      @media (max-width: 800px) { main { grid-template-columns:1fr; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="status mono off" id="status"><i></i><span id="statusText">Sin conexión con el escenario</span></div>
+      <div class="timers mono">
+        <div><b id="sceneClock">--:--</b><span id="sceneClockLabel">Escena</span></div>
+        <div><b id="elapsed">--:--</b><span>Transcurrido</span></div>
+        <div><b id="deckLeft">--:--</b><span id="deckLeftLabel">Restante (auto)</span></div>
+      </div>
+    </header>
+
+    <main>
+      <section class="card" id="currentCard">
+        <div class="bar"><i id="bar"></i></div>
+        <div class="label mono" id="currentLabel">En pantalla</div>
+        <h2 id="currentTitle">Esperando…</h2>
+        <p id="currentBody">Abre esta vista desde el escenario con la tecla P y lanza una presentación.</p>
+        <div class="poll-ctl" id="pollCtl" hidden></div>
+        <div class="notes" id="notesBlock" hidden>
+          <div class="label mono">Notas del orador</div>
+          <p id="notes"></p>
+        </div>
+        <div class="decks" id="decks"></div>
+      </section>
+      <section class="side">
+        <div class="card next">
+          <div class="label mono" id="nextLabel">Siguiente</div>
+          <h2 id="nextTitle">—</h2>
+          <p id="nextBody"></p>
+        </div>
+        <div class="card"><div class="label mono">Escenas</div><div class="scenes" id="scenes"></div></div>
+      </section>
+    </main>
+
+    <footer>
+      <button type="button" data-cmd="prev">← Anterior</button>
+      <button type="button" class="primary" data-cmd="next">Siguiente →</button>
+      <button type="button" data-cmd="toggle" id="toggleBtn">Pausa (Espacio)</button>
+      <button type="button" data-cmd="mode" id="modeBtn">Modo: auto (M)</button>
+      <button type="button" data-cmd="moment">Repetir efecto (E)</button>
+      <span class="spacer"></span>
+      <button type="button" data-cmd="standby">Espera (S)</button>
+    </footer>
+
+    <script src="decks.js"></script>
+    <script>
+      const channel = new BroadcastChannel('edulab-stage');
+      const $ = (id) => document.getElementById(id);
+      let state = null, receivedAt = 0;
+      const fmt = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`; };
+      const send = (type, extra = {}) => channel.postMessage({ type: 'cmd', cmd: { type, ...extra } });
+      const dur = (scene) => scene.duration || 4200;
+
+      // Los decks de la barra lateral se muestran como botones cuando no hay nada en pantalla.
+      $('decks').innerHTML = deckNames.map((name, i) => `<button type="button" data-deck="${i}">${i + 1} · ${name}</button>`).join('');
+      $('decks').addEventListener('click', (e) => { const b = e.target.closest('[data-deck]'); if (b) send('launch', { deck: Number(b.dataset.deck) }); });
+      document.querySelector('footer').addEventListener('click', (e) => { const b = e.target.closest('[data-cmd]'); if (b) send(b.dataset.cmd); });
+      $('scenes').addEventListener('click', (e) => { const b = e.target.closest('[data-scene]'); if (b) send('goto', { scene: Number(b.dataset.scene) }); });
+
+      window.addEventListener('keydown', (event) => {
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
+        const key = event.key.toLowerCase();
+        if (['1','2','3'].includes(key)) send('launch', { deck: Number(key) - 1 });
+        else if (key === 's') send('standby');
+        else if (event.code === 'Space') { event.preventDefault(); send('toggle'); }
+        else if (['arrowright','pagedown','arrowdown'].includes(key)) { event.preventDefault(); send('next'); }
+        else if (['arrowleft','pageup','arrowup'].includes(key)) { event.preventDefault(); send('prev'); }
+        else if (key === 'm') send('mode');
+        else if (key === 'e') send('moment');
+      });
+
+      // Solo se redibuja cuando cambia algo visible; los mensajes de cada 500 ms solo actualizan los relojes
+      // (si no, reconstruir los botones entre mousedown y mouseup se come los clicks).
+      let lastSig = '';
+      channel.onmessage = (event) => {
+        if (event.data?.type !== 'state') return;
+        state = event.data.state; receivedAt = performance.now();
+        const sig = JSON.stringify([state.deck, state.scene, state.paused, state.mode, state.votes]);
+        if (sig !== lastSig) { lastSig = sig; renderStatic(); }
+      };
+      $('pollCtl').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-vote]'); if (b) return send('vote', { option: Number(b.dataset.vote), delta: Number(b.dataset.delta) });
+        if (e.target.closest('[data-reset]')) send('resetVotes');
+      });
+      send('hello');
+      setInterval(() => send('hello'), 4000); // reenganche si el escenario se recargó
+
+      function renderStatic() {
+        const live = state && state.deck !== null;
+        const deck = live ? decks[state.deck] : null;
+        const scene = live ? deck[state.scene] : null;
+        const next = live ? deck[state.scene + 1] : null;
+        $('currentCard').classList.toggle('empty', !live);
+        $('currentLabel').textContent = live ? `En pantalla · ${deckNames[state.deck]} · ${state.scene + 1}/${deck.length}` : 'En pantalla';
+        $('currentTitle').textContent = live ? scene.title : 'Pantalla de espera';
+        $('currentBody').textContent = live ? scene.body : 'Elige una presentación para lanzarla:';
+        $('notesBlock').hidden = !(live && scene.notes);
+        $('notes').textContent = live && scene.notes ? scene.notes : '';
+        $('decks').hidden = live;
+        $('nextLabel').textContent = live ? (next ? 'Siguiente' : 'Última escena') : 'Siguiente';
+        $('nextTitle').textContent = live ? (next ? next.title : 'Vuelve a la pantalla de espera') : '—';
+        $('nextBody').textContent = live && next ? next.body : '';
+        $('scenes').innerHTML = live ? deck.map((s, i) => `<button type="button" data-scene="${i}" class="${i === state.scene ? 'current' : i < state.scene ? 'done' : ''}"><small>${String(i + 1).padStart(2,'0')}</small><span>${s.title}</span></button>`).join('') : '';
+        $('scenes').querySelector('.current')?.scrollIntoView({ block: 'nearest' });
+        const poll = live && (scene.poll || scene.counter);
+        const pollOptions = !poll ? [] : scene.poll ? scene.poll.options : [scene.counter.label];
+        $('pollCtl').hidden = !poll;
+        $('pollCtl').innerHTML = poll ? `<div class="label mono">${scene.counter ? 'Contador en vivo' : 'Votación en vivo'}</div>` + pollOptions.map((label, i) => `<div class="row"><span>${label}</span><button type="button" data-vote="${i}" data-delta="-1">−1</button><b>${state.votes?.[i] ?? 0}</b><button type="button" data-vote="${i}" data-delta="1">+1</button></div>`).join('') + `<button type="button" data-reset>Reiniciar votos</button>` : '';
+        const manual = state?.mode === 'manual';
+        $('modeBtn').textContent = `Modo: ${manual ? 'manual' : 'auto'} (M)`;
+        $('toggleBtn').textContent = state?.paused ? 'Reanudar (Espacio)' : 'Pausa (Espacio)';
+        $('toggleBtn').disabled = manual; $('toggleBtn').style.opacity = manual ? .35 : 1;
+        const st = $('status');
+        st.className = `status mono${live ? (state.paused ? ' paused' : '') : ' off'}`;
+        $('statusText').textContent = !state ? 'Sin conexión con el escenario' : !live ? 'Escenario en espera' : state.paused ? 'En pausa' : manual ? 'Reproduciendo · manual' : 'Reproduciendo · auto';
+        $('deckLeftLabel').textContent = manual ? 'Restante (estimado)' : 'Restante (auto)';
+      }
+
+      // Los relojes avanzan localmente entre mensajes del escenario (cada 500 ms).
+      setInterval(() => {
+        if (!state || state.deck === null) { $('sceneClock').textContent = $('elapsed').textContent = $('deckLeft').textContent = '--:--'; $('bar').style.width = '0'; return; }
+        const running = !state.paused && state.mode === 'auto';
+        const remaining = Math.max(0, state.remaining - (running ? performance.now() - receivedAt : 0));
+        const deck = decks[state.deck];
+        const total = dur(deck[state.scene]);
+        $('sceneClock').textContent = fmt(remaining);
+        $('sceneClockLabel').textContent = state.mode === 'auto' ? 'Escena (restante)' : 'Escena (manual)';
+        $('bar').style.width = state.mode === 'auto' ? `${(1 - remaining / total) * 100}%` : '0';
+        $('elapsed').textContent = fmt(Date.now() - state.startedAt);
+        const later = deck.slice(state.scene + 1).reduce((sum, s) => sum + dur(s), 0);
+        $('deckLeft').textContent = fmt((state.mode === 'auto' ? remaining : total) + later);
+      }, 250);
+      renderStatic();
+    </script>
+  </body>
+</html>

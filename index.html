@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#050505" />
+    <title>EduLab &amp; Sip — Signal Found</title>
+    <link rel="preload" href="fonts/archivo-black.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/permanent-marker.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="stage" aria-label="Pantalla de espera EduLab y Sip">
+      <canvas id="reef" aria-hidden="true"></canvas>
+      <div class="grain" aria-hidden="true"></div>
+      <div class="scanlines" aria-hidden="true"></div>
+      <div class="vignette" aria-hidden="true"></div>
+
+      <header class="topbar">
+        <span class="system-tag"><i></i> LIVE / STANDBY</span>
+        <span class="system-tag right">CDMX · 19:32:08</span>
+      </header>
+
+      <section class="hero">
+        <div class="eyebrow"><span></span> MEXICO TECH WEEK · 2026</div>
+        <div class="wordmark" aria-label="EduLab y Sip">
+          <div class="edu">EduLab</div>
+          <div class="brush-wrap"><div class="brush"><span>&amp; Sip</span></div></div>
+          <div class="byline">by <strong>Dekids</strong></div>
+        </div>
+        <p class="status"><span class="orb"></span> Para gente sin miedo a soñar</p>
+      </section>
+
+      <section class="show" aria-live="polite" aria-hidden="true">
+        <div class="show-art" aria-hidden="true">
+          <svg class="rocket-doodle" viewBox="0 0 180 250" fill="none">
+            <path d="M95 20C140 62 143 125 116 166L65 111C57 72 70 40 95 20Z" stroke="currentColor" stroke-width="8" stroke-linejoin="round" />
+            <path d="M65 111L32 124L51 151L72 145M116 166L108 200L78 176L82 154" stroke="currentColor" stroke-width="8" stroke-linejoin="round" />
+            <circle cx="96" cy="86" r="18" stroke="currentColor" stroke-width="8" />
+            <path d="M48 151C31 171 25 194 30 222M61 159C50 185 51 209 62 231M73 170C70 195 76 216 91 233" stroke="#ff3bb9" stroke-width="9" stroke-linecap="round" />
+          </svg>
+          <span class="doodle star-one">✦</span><span class="doodle star-two">✧</span><span class="doodle spark">✹</span>
+          <span class="orbit orbit-one"></span><span class="orbit orbit-two"></span>
+          <span class="idea-bulb">✷</span>
+        </div>
+        <div class="show-moments back" id="showMomentsBack" aria-hidden="true"></div>
+        <div class="show-moments" id="showMoments" aria-hidden="true"></div>
+        <div class="show-kicker">EDULAB &amp; SIP · PRESENTACIÓN <span id="showNumber">01</span></div>
+        <div class="show-progress"><i id="progressFill"></i></div>
+        <div class="show-copy">
+          <p id="showOverline"></p>
+          <h1 id="showTitle"></h1>
+          <p id="showBody"></p>
+        </div>
+        <div class="show-extra" id="showExtra"></div>
+        <div class="show-timer" id="showTimer" aria-live="off"></div>
+        <div class="show-index"><span id="sceneIndex">01</span> / <span id="sceneTotal">03</span></div>
+      </section>
+
+      <footer class="footer">
+        <span>01 / 01</span>
+        <div class="signal"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div>
+        <span>EDULAB &amp; SIP // 2026</span>
+      </footer>
+      <button class="sound-toggle" type="button" aria-pressed="false">MOTION <span>ON</span></button>
+      <button class="operator-toggle" type="button" aria-expanded="false">CONTROLES <span>O</span></button>
+      <aside class="operator-panel" aria-label="Controles de operador" aria-hidden="true">
+        <strong>OPERADOR</strong>
+        <p><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Lanzar presentación</p>
+        <p><kbd>S</kbd> Espera &nbsp; <kbd>ESPACIO</kbd> Pausa</p>
+        <p><kbd>←</kbd><kbd>→</kbd> Escena &nbsp; <kbd>F</kbd> Fullscreen</p>
+        <p><kbd>M</kbd> Auto / Manual &nbsp; <kbd>P</kbd> Presentador</p>
+      </aside>
+    </main>
+    <script src="vendor/qrcode.js"></script>
+    <script src="vendor/anime.umd.min.js"></script>
+    <script src="moments.js"></script>
+    <script src="cierre.js"></script>
+    <script src="decks.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

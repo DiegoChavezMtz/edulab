@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <rect width="800" height="500" fill="#07101f"/>
+  <path d="M0 400 L800 360 M0 100 L800 140" stroke="#1457ff" stroke-width="2" opacity=".5"/>
+  <rect x="40" y="40" width="720" height="420" fill="none" stroke="#d9ff20" stroke-width="3" stroke-dasharray="14 10"/>
+  <text x="400" y="240" text-anchor="middle" font-family="monospace" font-size="38" fill="#d9ff20">TU MEDIA AQUÍ</text>
+  <text x="400" y="290" text-anchor="middle" font-family="monospace" font-size="22" fill="#fff" opacity=".7">imagen · video · demo</text>
+</svg>
